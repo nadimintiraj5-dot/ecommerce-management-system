@@ -1,5 +1,6 @@
 src/
-.java files
-.sql file
+database/
 screenshots/
-project report PDF
+README.md
+Ecommerce_Project_Report.pdf
+ecommerce.sql
