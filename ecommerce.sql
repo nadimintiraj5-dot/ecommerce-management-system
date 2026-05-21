@@ -1,29 +1,14 @@
-import java.sql.*;
+CREATE DATABASE ecommerce;
 
-public class DBConnection {
+USE ecommerce;
 
-    static Connection con;
+CREATE TABLE products (
+    id INT PRIMARY KEY,
+    name VARCHAR(50),
+    price DOUBLE
+);
 
-    public static Connection getConnection() {
-
-        try {
-
-            Class.forName("com.mysql.cj.jdbc.Driver");
-
-            con = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/shopping",
-                "root",
-                "1234"
-            );
-
-            System.out.println("Database Connected");
-
-        } catch(Exception e) {
-
-            System.out.println(e);
-
-        }
-
-        return con;
-    }
-}
+INSERT INTO products VALUES
+(1, 'Phone', 15000),
+(2, 'Laptop', 55000),
+(3, 'Headphones', 2000);
