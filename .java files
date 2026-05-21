@@ -1,0 +1,305 @@
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import java.util.ArrayList;
+
+// ================= DB CONNECTION =================
+
+class DBConnection {
+
+    static Connection con;
+
+    public static Connection getConnection() {
+
+        try {
+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            con = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/shopping",
+                    "root",
+                    "1234"
+            );
+
+        } catch (Exception e) {
+
+            System.out.println(e);
+
+        }
+
+        return con;
+    }
+}
+
+// ================= LOGIN CLASS =================
+
+class Login {
+
+    public static boolean checkLogin(String username, String password) {
+
+        boolean status = false;
+
+        try {
+
+            Connection con = DBConnection.getConnection();
+
+            PreparedStatement ps = con.prepareStatement(
+                    "select * from users where username=? and password=?"
+            );
+
+            ps.setString(1, username);
+            ps.setString(2, password);
+
+            ResultSet rs = ps.executeQuery();
+
+            status = rs.next();
+
+        } catch (Exception e) {
+
+            System.out.println(e);
+
+        }
+
+        return status;
+    }
+}
+
+// ================= CART CLASS =================
+
+class Cart {
+
+    ArrayList<String> items = new ArrayList<>();
+
+    int total = 0;
+
+    public void addItem(String product, int price) {
+
+        items.add(product + " - Rs." + price);
+
+        total += price;
+
+        System.out.println("Product Added");
+    }
+
+    public void removeItem(String product) {
+
+        items.remove(product);
+
+        System.out.println("Product Removed");
+    }
+
+    public String displayCart() {
+
+        String result = "";
+
+        for (String item : items) {
+
+            result += item + "\n";
+        }
+
+        result += "\nTotal = Rs." + total;
+
+        return result;
+    }
+}
+
+// ================= MAIN GUI =================
+
+public class EcommerceSystem extends JFrame implements ActionListener {
+
+    JLabel title, l1, l2;
+
+    JTextField username;
+
+    JPasswordField password;
+
+    JButton loginBtn, addCartBtn, billBtn;
+
+    JTable table;
+
+    JTextArea cartArea;
+
+    DefaultTableModel model;
+
+    Cart cart = new Cart();
+
+    EcommerceSystem() {
+
+        setTitle("E-Commerce Shopping Cart");
+
+        setSize(850, 600);
+
+        setLayout(null);
+
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        // ===== TITLE =====
+
+        title = new JLabel("E-Commerce Shopping Cart System");
+
+        title.setFont(new Font("Arial", Font.BOLD, 24));
+
+        title.setBounds(200, 20, 450, 30);
+
+        add(title);
+
+        // ===== LOGIN =====
+
+        l1 = new JLabel("Username");
+
+        l1.setBounds(50, 80, 100, 30);
+
+        add(l1);
+
+        username = new JTextField();
+
+        username.setBounds(150, 80, 150, 30);
+
+        add(username);
+
+        l2 = new JLabel("Password");
+
+        l2.setBounds(50, 130, 100, 30);
+
+        add(l2);
+
+        password = new JPasswordField();
+
+        password.setBounds(150, 130, 150, 30);
+
+        add(password);
+
+        loginBtn = new JButton("Login");
+
+        loginBtn.setBounds(100, 190, 120, 30);
+
+        loginBtn.addActionListener(this);
+
+        add(loginBtn);
+
+        // ===== PRODUCT TABLE =====
+
+        String data[][] = {
+                {"1", "Laptop", "50000"},
+                {"2", "Mobile", "20000"},
+                {"3", "Watch", "3000"},
+                {"4", "Headphones", "1500"},
+                {"5", "Keyboard", "1000"}
+        };
+
+        String column[] = {"ID", "Product", "Price"};
+
+        model = new DefaultTableModel(data, column);
+
+        table = new JTable(model);
+
+        JScrollPane sp = new JScrollPane(table);
+
+        sp.setBounds(350, 80, 400, 150);
+
+        add(sp);
+
+        // ===== ADD TO CART =====
+
+        addCartBtn = new JButton("Add To Cart");
+
+        addCartBtn.setBounds(450, 250, 150, 30);
+
+        addCartBtn.addActionListener(this);
+
+        add(addCartBtn);
+
+        // ===== CART AREA =====
+
+        cartArea = new JTextArea();
+
+        JScrollPane cartScroll = new JScrollPane(cartArea);
+
+        cartScroll.setBounds(350, 310, 400, 150);
+
+        add(cartScroll);
+
+        // ===== BILL BUTTON =====
+
+        billBtn = new JButton("Generate Bill");
+
+        billBtn.setBounds(470, 490, 150, 30);
+
+        billBtn.addActionListener(this);
+
+        add(billBtn);
+
+        setVisible(true);
+    }
+
+    // ================= BUTTON ACTIONS =================
+
+    public void actionPerformed(ActionEvent e) {
+
+        // ===== LOGIN =====
+
+        if (e.getSource() == loginBtn) {
+
+            String user = username.getText();
+
+            String pass = password.getText();
+
+            boolean status = Login.checkLogin(user, pass);
+
+            if (status) {
+
+                JOptionPane.showMessageDialog(this,
+                        "Login Successful");
+
+            } else {
+
+                JOptionPane.showMessageDialog(this,
+                        "Invalid Username or Password");
+            }
+        }
+
+        // ===== ADD TO CART =====
+
+        if (e.getSource() == addCartBtn) {
+
+            int row = table.getSelectedRow();
+
+            if (row >= 0) {
+
+                String product = model.getValueAt(row, 1).toString();
+
+                int price = Integer.parseInt(
+                        model.getValueAt(row, 2).toString()
+                );
+
+                cart.addItem(product, price);
+
+                cartArea.setText(cart.displayCart());
+
+            } else {
+
+                JOptionPane.showMessageDialog(this,
+                        "Select Product");
+            }
+        }
+
+        // ===== BILL =====
+
+        if (e.getSource() == billBtn) {
+
+            JOptionPane.showMessageDialog(this,
+                    "Bill Generated Successfully");
+
+            cartArea.append("\n\nThank You For Shopping");
+        }
+    }
+
+    // ================= MAIN METHOD =================
+
+    public static void main(String[] args) {
+
+        new EcommerceSystem();
+    }
+}
